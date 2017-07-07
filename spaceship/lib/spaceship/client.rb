@@ -213,7 +213,7 @@ module Spaceship
       end
 
       unless result
-        raise ITunesConnectError.new, "Could not set team ID to '#{team_id}', only found the following available teams: #{available_teams.join(', ')}"
+        raise TunesClient::ITunesConnectError.new, "Could not set team ID to '#{team_id}', only found the following available teams: #{available_teams.join(', ')}"
       end
 
       response = request(:post) do |req|
@@ -514,7 +514,11 @@ module Spaceship
 
     def with_retry(tries = 5, &_block)
       return yield
-    rescue Faraday::Error::ConnectionFailed, Faraday::Error::TimeoutError, AppleTimeoutError => ex # New Faraday version: Faraday::TimeoutError => ex
+    rescue \
+        Faraday::Error::ConnectionFailed,
+        Faraday::Error::TimeoutError,
+        AppleTimeoutError,
+        InternalServerError => ex # New Faraday version: Faraday::TimeoutError => ex
       tries -= 1
       unless tries.zero?
         logger.warn("Timeout received: '#{ex.message}'. Retrying after 3 seconds (remaining: #{tries})...")
